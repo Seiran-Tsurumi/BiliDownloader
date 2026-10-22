@@ -1,0 +1,7 @@
+# 运行时依赖
+requests>=2.34
+imageio-ffmpeg>=0.6
+PySide6>=6.12
+
+# 构建依赖（仅打包 exe 时需要，不属于运行时依赖）：
+#   .venv\Scripts\python -m pip install pyinstaller
