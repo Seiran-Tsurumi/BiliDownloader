@@ -19,6 +19,9 @@ import time
 from pathlib import Path
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+os.environ["BILIDOWNLOADER_SETTINGS"] = os.path.join(
+    tempfile.mkdtemp(prefix="bili_gui_settings_"), "settings.json"
+)
 
 _ROOT = str(Path(__file__).resolve().parent.parent.parent)
 if _ROOT not in sys.path:

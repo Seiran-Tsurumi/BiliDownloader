@@ -4,7 +4,7 @@ from .errors import ApiError, BiliDLError, CancelledError, DownloadError, InputE
 from .models import Quality, VideoMeta
 from .parse import parse_input
 
-__version__ = "0.1.0"
+__version__ = "2.0.0"
 
 __all__ = [
     "parse_input",
