@@ -87,6 +87,7 @@ _ARIA2_ARGS = [
 _PROXY_HOST = "127.0.0.1"
 _PROXY_PROBE_TIMEOUT = 0.2
 _PROXY_CANDIDATES = (
+    (12348, "http"),
     (12334, "http"),
     (7890, "http"),
     (7891, "socks5"),

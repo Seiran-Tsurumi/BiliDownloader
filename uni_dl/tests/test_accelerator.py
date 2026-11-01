@@ -106,6 +106,7 @@ class HasAcceleratorTest(unittest.TestCase):
 
 class DetectLocalProxyTest(unittest.TestCase):
     MAPPING = {
+        12348: "http://127.0.0.1:12348",
         12334: "http://127.0.0.1:12334",
         7890: "http://127.0.0.1:7890",
         7891: "socks5://127.0.0.1:7891",
@@ -152,15 +153,15 @@ class DetectLocalProxyTest(unittest.TestCase):
         calls = []
         with mock.patch(
             "uni_dl.socket.create_connection",
-            side_effect=fake_connection({12334, 7890, 10809}, calls),
+            side_effect=fake_connection({12348, 12334, 7890, 10809}, calls),
         ):
-            self.assertEqual(detect_local_proxy(), "http://127.0.0.1:12334")
-        self.assertEqual(calls[0][0][1], 12334)
+            self.assertEqual(detect_local_proxy(), "http://127.0.0.1:12348")
+        self.assertEqual(calls[0][0][1], 12348)
 
     def test_returned_socket_is_closed(self):
         sock = mock.Mock()
         with mock.patch("uni_dl.socket.create_connection", return_value=sock):
-            self.assertEqual(detect_local_proxy(), "http://127.0.0.1:12334")
+            self.assertEqual(detect_local_proxy(), "http://127.0.0.1:12348")
         sock.close.assert_called_once()
 
 

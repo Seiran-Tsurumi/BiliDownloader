@@ -41,8 +41,11 @@ def main(argv=None):
 
     from gui.main_window import MainWindow
 
+    from gui.assets import app_icon
+
     app = QApplication.instance() or QApplication(argv)
     app.setApplicationName("BiliDownloader")
+    app.setWindowIcon(app_icon())
     window = MainWindow()
     window.show()
     return app.exec()

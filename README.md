@@ -25,12 +25,28 @@
 - **代理**：自动检测本机常见代理端口（Clash/v2rayN 等），也可手动填写 http/socks5 代理；留空走系统网络。
 - **站点内置解析**：yhdmtv.cc、hanime1.me 等由内置解析直接提取直链；Cloudflare 反爬用 curl_cffi 浏览器指纹伪装。
 - **失败自动恢复**：直链令牌失效（403/410）时自动重新解析页面换新直链并重试；连接中断自动分块续传。
-- **设置自动记忆**：存储位置、代理模式与端口（默认 127.0.0.1:12334）、加速开关、主题会在重启后恢复；设置保存在 `%APPDATA%\BiliDownloader\settings.json`（Cookie 不保存）。
+- **设置自动记忆**：存储位置、代理模式与端口（默认 127.0.0.1:12348）、加速开关、主题会在重启后恢复；设置保存在 `%APPDATA%\BiliDownloader\settings.json`（Cookie 不保存）。
 - **防误用旧结果**：输入框内容改变后，上一个链接的解析结果立即失效，下载按钮禁用，必须重新解析当前链接。
 
-### 双模式与主题
+### 视图打包模式（page_dl）
 
-- **两模式互不影响**：B站专属标签页的对象名与行为保持不变；万能下载独立维护自身解析/下载状态。
+- **整页媒体抓取**：输入页面 URL，解析页面内所有图片、视频、音频（img/srcset/data-src、Discuz 懒加载 file/zoomfile、video/source、audio、a[href] 直链、CSS background-image），相对地址自动解析并按图片尺寸变体去重。
+- **ZIP 打包**：下载后按类型分目录（图片/、视频/、音频/、其他/）打包为单个 ZIP，内含 清单.txt（类型/状态/URL/文件名）；文件名保留原名，重名自动加序号。
+- **垃圾过滤**：跳过站点 UI 资源路径（/static/image/、/template/、/source/plugin/、头像等）、非媒体响应（如 .php 返回 HTML/JSON）与小于 4KB 的图片，并记入清单；`.attach` 等附件白名单保留。
+- **并发与取消**：4 线程下载，进度/速度实时回传，可随时取消（自动清理临时文件与半成品 ZIP）。
+- **Cookie/代理**：可选 cookies.txt（同时用于页面抓取与媒体下载）与代理设置（与万能下载共用）；登录页会给出中文提示；仅抓取当前页面，不做递归。
+
+### 飞机模式（tg_dl / Telethon）
+
+- **扫码登录 Telegram**：填写 my.telegram.org 申请的 API ID / API Hash，点击「扫码登录」，手机 Telegram 扫码确认（支持两步验证密码）。
+- **频道媒体全量抓取**：输入 @频道名、t.me 链接、数字 ID 或 web.telegram.org 链接（自动提取 ID），预览频道标题与媒体总数，支持图片/视频/音频/文件四类筛选与条数上限（0=全部）。
+- **按类型目录保存**：下载到 <保存目录>/<频道标题>/图片|视频|音频|文件/，保留 Telegram 原文件名，重名自动加序号。
+- **session 持久化**：登录一次后保存在 %APPDATA%\BiliDownloader\telegram.session，下次免登录；「退出登录」删除该文件。
+- **代理**：复用共用代理设置（HTTP/SOCKS5，需 python-socks）；Telegram 服务器在部分网络下需代理/VPN 才能连接。
+
+### 四模式与主题
+
+- **四模式互不影响**：B站专属、万能下载、视图打包、飞机模式各自维护解析/下载状态，对象名与行为保持不变。
 - **三套 QSS 主题**：菜单栏「主题(&T)」切换 chiikawa（默认，纯 QSS 粉彩可爱风，无图片资源）/ light（纯白）/ dark（纯黑）。
 - **单文件 exe**：内含 Python 运行时、PySide6、requests、yt-dlp、aria2c、curl_cffi 与 ffmpeg，双击即用（体积随依赖版本变化）。
 
@@ -63,6 +79,31 @@ https://www.youtube.com/playlist?list=...
 ```
 
 说明：万能下载模式交由 yt-dlp 识别站点与页面类型，实际支持范围以当前 yt-dlp 版本为准；仅支持 http/https 链接，非链接输入会以中文提示拒绝。部分站点（如 yhdmtv.cc）由程序内置预解析直接提取播放源。
+
+### 视图打包标签页
+
+任意 http/https 页面链接（相册页、文章页、图集页等）：
+
+```
+https://en.wikipedia.org/wiki/Cat
+https://example.com/gallery/page-1
+```
+
+说明：只抓取当前页面 DOM 中的静态媒体（img/srcset/data-src、video/source、audio、a[href] 直链、CSS background-image）；由 JavaScript 动态加载的媒体、iframe 内嵌播放器不会被抓取，可改用「万能下载」处理视频页。仅支持 http/https 链接。
+
+### 飞机模式标签页
+
+频道形式（任选其一）：
+
+```
+@channel_name
+https://t.me/channel_name
+channel_name
+https://web.telegram.org/k/#-2927538994
+-2927538994
+```
+
+说明：需要先填写 Telegram API ID / API Hash 并扫码登录；「预览频道」只统计媒体条数，不下载。图片/视频/音频/文件可分别筛选，「条数」为 0 时下载全部历史（数量可能很大，建议先预览）。
 
 ## 快速开始
 
@@ -98,6 +139,7 @@ build_exe.bat
 ```
 BiliDownloader/
 ├── main.py                     # 入口：启动 GUI；--selftest 离屏冒烟
+├── assets/                     # 应用图标（logo.png 窗口图标 / logo.ico exe 图标）
 ├── bili_dl/                    # B站专属下载核心（纯 Python、无 UI、可独立复用）
 │   ├── parse.py                # 输入识别：URL / BV 校验，拒绝非单视频页面
 │   ├── api.py                  # B 站接口：view / playurl（WBI 签名）
@@ -110,14 +152,22 @@ BiliDownloader/
 ├── uni_dl/                     # 万能下载核心（基于 yt-dlp，纯 Python、无 UI）
 │   ├── __init__.py             # parse_input / download_video / 格式预设 / Cookie 参数 / 中文错误 / 站点预解析
 │   └── tests/                  # 71 项离线单测（mock yt_dlp.YoutubeDL / requests / socket，不联网）
+├── page_dl/                    # 视图打包核心（页面媒体抓取 + ZIP 打包，纯 Python、无 UI）
+│   ├── parse.py                # HTMLParser 解析 img/srcset/video/source/audio/CSS 背景图
+│   ├── download.py             # 4 线程下载 + ZIP/目录打包 + 清单
+│   ├── naming.py               # 扩展名分类、文件名清理、重名序号
+│   └── tests/                  # 57 项离线单测（mock 网络，不联网）
+├── tg_dl/                      # 飞机模式核心（Telethon：扫码登录 + 频道媒体下载，纯 Python、无 UI）
+│   ├── __init__.py             # qr_login / list_channel_media / download_channel_media / 代理 / 中文错误
+│   └── tests/                  # 99 项离线单测（mock Telethon，不联网）
 ├── gui/                        # PySide6 界面
-│   ├── main_window.py          # 主窗口：B站专属 + 万能下载双标签页、主题菜单
-│   ├── workers.py              # QThread 后台工作线程（B站解析/下载 + 万能解析/下载）
+│   ├── main_window.py          # 主窗口：四个标签页、主题菜单
+│   ├── workers.py              # QThread 后台工作线程（四种模式的解析/下载/打包）
 │   ├── theme.py                # 三套 QSS 主题（chiikawa / light / dark）
 │   ├── notify.py               # 弹窗薄封装（便于测试）
-│   └── tests/                  # B站 GUI 自测 + 万能下载 GUI 自测 + 真实集成测试
-├── requirements.txt            # 运行时依赖（requests / imageio-ffmpeg / PySide6 / yt-dlp）
-├── BiliDownloader.spec         # PyInstaller 打包配置（collect imageio_ffmpeg + yt_dlp）
+│   └── tests/                  # 四套 GUI 离屏自测 + 真实集成测试
+├── requirements.txt            # 运行时依赖（requests / imageio-ffmpeg / PySide6 / yt-dlp / curl_cffi / telethon / qrcode / python-socks）
+├── BiliDownloader.spec         # PyInstaller 打包配置（collect imageio_ffmpeg + yt_dlp + telethon + qrcode）
 ├── build_exe.bat               # 一键打包
 ├── run.bat                     # 源码启动脚本
 └── README.md
@@ -184,6 +234,23 @@ B站与万能下载的网络、解析、合并全部在 `QThread` 工作线程�
 - **站点解析**：对 yhdmtv.cc（Base64 混淆 m3u8）与 hanime1.me（vdownload 签名直链）内置解析，取页面内最高画质。
 - **重试**：最多 3 次（aria2c → 内置下载器 → 重新解析直链），令牌失效/403/410 映射为中文错误。
 
+### 9. 视图打包模式（page_dl）
+
+- **抓取**：requests 抓页面（curl_cffi 可用时优先浏览器指纹），3 次尝试；可选 cookies.txt（按域名筛选 Cookie）。
+- **解析**：标准库 `html.parser` 收集 img[src|data-src|data-original|data-lazy-src|srcset]、picture>source、video[src|poster]、source、audio、a[href]（仅常见媒体扩展名）、内联 style 与 `<style>` 的 `url(...)`；urljoin 解析相对地址。
+- **懒加载与去重**：img 的 zoomfile/file/data-echo 优先于占位 src；`x.jpg.thumb.jpg` / `x.jpg.1500x1500.jpg` 按基名归一去重；跳过站点 UI 路径与小于 4KB 的图片。
+- **分类与命名**：按扩展名分图片/视频/音频/其他；文件名保留原名并清理非法字符（≤120 字符），重名追加 ` (1)`。
+- **下载与打包**：4 线程并发流式下载，单条失败跳过并写入清单；ZIP 内按 `图片/`、`视频/`、`音频/`、`其他/` 分目录，附 `清单.txt`；取消时清理临时目录与半成品 ZIP。
+- **进度**：`download`（累计字节/已知总字节）→ `packing` → `done`（ZIP 大小）。
+
+### 10. 飞机模式（tg_dl / Telethon）
+
+- **登录**：Telethon `qr_login` 生成 tg://login 链接，GUI 用 QPainter 画二维码；轮询 wait，二维码过期自动刷新；两步验证用密码框补签；session 存为 SQLite 文件。
+- **列媒体**：`iter_messages` 遍历频道（limit=None），按 photo/video/audio/document 分类，媒体条数上限在遍历中截止；频道支持 @名、t.me 链接、数字 ID、web.telegram.org 链接（解析出 ID 后在对话列表中查找实体）。
+- **下载**：按 `<保存目录>/<频道标题>/<类型目录>/` 保存，保留原名、清理非法字符、重名加序号；`download_media` 的 progress_callback 检查取消；FloodWait ≤60s 自动等待，单文件失败跳过并上报 skip。
+- **session**：Telethon SQLite session 位于 %APPDATA%\BiliDownloader\telegram.session；「退出登录」即删除。
+- **代理**：http/socks5 由 python-socks 提供，复用应用代理设置。
+
 ## 画质与 Cookie 说明
 
 ### B站专属
@@ -197,7 +264,19 @@ B站与万能下载的网络、解析、合并全部在 `QThread` 工作线程�
 - 解析成功后，在「画质」下拉框选择预设（默认「最高可用」）；「格式」输入框可留空或填自定义 yt-dlp 格式串。
 - Cookie 入口：标签页内「Cookie 浏览器」下拉（不登录 / Chrome / Edge / Firefox / Brave / Opera / Vivaldi）或「Cookie 文件」选择 cookies.txt；二者只生效其一（优先 cookies.txt）。
 - Cookie 仅本次运行有效、仅存内存：浏览器 Cookie 读取进内存，程序不保存、不写回任何 cookie 文件。
-- 「代理」默认自动检测（含 12334 / 7890 / 10809 / 10808 / 1080 等常见端口）；手动模式可填 `http://127.0.0.1:12334` 或 `socks5://127.0.0.1:7891`，留空则走系统网络。
+- 「代理」默认自动检测（含 12348 / 7890 / 10809 / 10808 / 1080 等常见端口）；手动模式可填 `http://127.0.0.1:12348` 或 `socks5://127.0.0.1:7891`，留空则走系统网络。
+
+### 视图打包
+
+- 需要登录的页面：先在浏览器登录目标站点，用扩展（如 Get cookies.txt LOCALLY / EditThisCookie）导出 **Netscape 格式 cookies.txt**，在标签页「Cookie 文件」中选择后再解析；Cookie 同时用于页面抓取与媒体下载。
+- 若解析结果提示“该页面需要登录”，说明未带 Cookie 或 Cookie 已过期，请重新导出。
+- Cookie 仅本次运行有效，不保存；「代理」与万能下载共用同一设置，保存位置单独记忆。
+
+### 飞机模式
+
+- API ID / API Hash 会保存在 %APPDATA%\BiliDownloader\settings.json（用于免重复填写；如介意可留空每次手填）。
+- 登录会话保存在 %APPDATA%\BiliDownloader\telegram.session（含登录密钥，请勿分享；界面「退出登录」可删除）。
+- 代理需 python-socks；Telegram 服务器在部分网络下直连会被阻断，请开启 VPN 或在「万能下载」页配置可用代理。
 
 ### 主题
 
@@ -218,9 +297,13 @@ B站与万能下载的网络、解析、合并全部在 `QThread` 工作线程�
 ```bat
 .venv\Scripts\python.exe -m unittest discover -s bili_dl/tests -t .    # B站核心 35 项（含 5 项真实网络集成）
 .venv\Scripts\python.exe -m unittest discover -s uni_dl/tests -t .     # 万能下载核心 71 项（全离线 mock）
+.venv\Scripts\python.exe -m unittest discover -s page_dl/tests -t .    # 视图打包核心 57 项（全离线 mock）
+.venv\Scripts\python.exe -m unittest discover -s tg_dl/tests -t .      # 飞机模式核心 99 项（全离线 mock）
 .venv\Scripts\python.exe main.py --selftest                             # GUI 冒烟
 .venv\Scripts\python.exe gui/tests/test_gui.py                          # B站 GUI 离屏自测（脚本内置 offscreen）
 .venv\Scripts\python.exe gui/tests/test_universal_gui.py                # 万能下载 GUI 离屏自测（脚本内置 offscreen）
+.venv\Scripts\python.exe gui/tests/test_pack_gui.py                     # 视图打包 GUI 离屏自测（脚本内置 offscreen）
+.venv\Scripts\python.exe gui/tests/test_tg_gui.py                       # 飞机模式 GUI 离屏自测（脚本内置 offscreen）
 ```
 
 ## 已知限制
@@ -243,6 +326,23 @@ B站与万能下载的网络、解析、合并全部在 `QThread` 工作线程�
 - 站点对单连接限流/中途断开时，程序按 10MB 分块请求并自动重试续传，避免大文件下载被截断。
 - 部分站点（如 yhdmtv.cc）通过内置预解析提取 m3u8 播放源，站点改版可能导致该解析失效（届时会退回中文错误提示）。
 
+### 视图打包模式
+
+- 仅抓取当前页面 DOM 中的静态媒体；JavaScript 动态渲染、懒加载未写入 DOM、iframe 内嵌播放器不会被抓取（视频页请用万能下载）。
+- 页面内媒体数量上限默认 500，超出部分截断并计入解析日志。
+- 单个媒体下载失败会跳过并记入 ZIP 内 `清单.txt`，不影响其它文件。
+- 非媒体响应（HTML/JSON 等）会被跳过；`.attach` 附件即使返回 HTML 也会保留（扩展名白名单，可继续按需扩展）。
+- 站点 UI 图标（/static/image/、/template/、/source/plugin/、头像等）与小于 4KB 的图片会被跳过；若某站点把正文图片放在这些路径下，请反馈再调整规则。
+- ZIP 内文件名保留页面原名；极长或非法文件名会被截断/替换。
+- 需要登录的页面必须提供 cookies.txt；仅当页面出现登录特征（密码框 + 登录标题/URL）时会提示“该页面需要登录”。
+
+### 飞机模式
+
+- 需要自备 Telegram API ID / API Hash（my.telegram.org 免费申请），并完成一次扫码登录。
+- Telegram 服务器在部分网络下直连会被阻断，必须配置可用代理/VPN；程序不自带翻墙能力。
+- 全量历史下载可能非常耗时并触发 Telegram 限流（FloodWait），程序会等待 ≤60s，仍超限时提示稍后重试。
+- session 文件含登录密钥，请勿分享；退出登录会删除本地 session，但不会使手机端登录失效。
+
 ## 合规声明
 
 > 本程序仅作为技术研究演示使用，使用者必须遵守B站用户协议以及版权相关法律法规，仅可下载自身拥有版权或已获得授权的视频，禁止私自下载、传播他人受版权保护的内容。
@@ -251,8 +351,12 @@ B站与万能下载的网络、解析、合并全部在 `QThread` 工作线程�
 
 > 万能下载基于 yt-dlp 仅作技术研究演示，请仅下载自身拥有版权或已获授权的视频，禁止下载、传播他人受版权保护的内容，并遵守目标网站的服务条款与当地法律法规。
 
+飞机模式：
+
+> 飞机模式通过 Telegram 官方 API 仅作技术研究演示，请仅下载自身拥有版权或已获授权的内容，遵守 Telegram 服务条款与当地法律法规，不得用于传播他人隐私或受版权保护的内容。
+
 ## 许可
 
 [MIT](LICENSE)
 
-第三方组件：aria2（GPLv2，见 `tools/aria2/COPYING`）、yt-dlp（Unlicense）、curl_cffi（MIT）、imageio-ffmpeg（BSD）、PySide6（LGPLv3）、requests（Apache-2.0）。
+第三方组件：aria2（GPLv2，见 `tools/aria2/COPYING`）、yt-dlp（Unlicense）、curl_cffi（MIT）、imageio-ffmpeg（BSD）、PySide6（LGPLv3）、requests（Apache-2.0）、Telethon（MIT）、qrcode（BSD）、python-socks（Apache-2.0）。

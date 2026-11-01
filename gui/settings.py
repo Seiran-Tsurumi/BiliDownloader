@@ -4,11 +4,19 @@ import json
 import os
 from pathlib import Path
 
-DEFAULT_PROXY_URL = "http://127.0.0.1:12334"
+DEFAULT_PROXY_URL = "http://127.0.0.1:12348"
 
 DEFAULTS = {
     "bili_save_dir": "",
     "uni_save_dir": "",
+    "pack_save_dir": "",
+    "tg_api_id": "",
+    "tg_api_hash": "",
+    "tg_channel": "",
+    "tg_save_dir": "",
+    "tg_limit": 0,
+    "tg_types": "",
+    "tg_no_save_credentials": False,
     "proxy_mode": "auto",
     "proxy_url": DEFAULT_PROXY_URL,
     "accelerator": False,

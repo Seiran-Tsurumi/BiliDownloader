@@ -4,6 +4,10 @@ imageio-ffmpeg>=0.6
 PySide6>=6.12
 yt-dlp>=2024.12.13
 curl_cffi>=0.16
+# 飞机模式（Telegram 频道媒体下载）：客户端 / 二维码渲染（仅矩阵）/ socks5 代理支持
+telethon>=1.45
+qrcode>=8
+python-socks>=2.4
 
 # 构建依赖（仅打包 exe 时需要，不属于运行时依赖）：
 #   .venv\Scripts\python -m pip install pyinstaller

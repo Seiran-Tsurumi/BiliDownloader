@@ -4,7 +4,7 @@
     QT_QPA_PLATFORM=offscreen .venv/Scripts/python.exe gui/tests/test_universal_gui.py
 
 覆盖验收点：
-  * mode_tabs 两个标签页存在，B站控件仍可访问
+  * mode_tabs 四个标签页存在（B站专属 / 万能下载 / 视图打包 / 飞机模式），B站控件仍可访问
   * 垃圾输入解析失败 -> notify.show_error 被调用
   * stub 解析成功填充 uni_meta_label 且日志含“解析成功”
   * 下载在后台线程、完成弹窗收到路径列表
@@ -130,9 +130,16 @@ def main():
 
     print("== 标签页与对象名 ==")
     check("mode_tabs 存在", isinstance(window.mode_tabs, QTabWidget))
-    check("mode_tabs 两个标签页", window.mode_tabs.count() == 2)
+    check("mode_tabs 四个标签页", window.mode_tabs.count() == 4)
     check("tab0 标题为 B站专属", window.mode_tabs.tabText(0) == "B站专属")
     check("tab1 标题为 万能下载", window.mode_tabs.tabText(1) == "万能下载")
+    check("tab2 标题为 视图打包", window.mode_tabs.tabText(2) == "视图打包")
+    check("tab3 标题为 飞机模式", window.mode_tabs.tabText(3) == "飞机模式")
+    check("视图打包页对象名为 pack_tab",
+          window.mode_tabs.widget(2).objectName() == "pack_tab")
+    check("飞机模式页对象名为 tg_tab",
+          window.mode_tabs.widget(3).objectName() == "tg_tab")
+    check("窗口图标已加载", not window.windowIcon().isNull())
     for attr in ("input_edit", "quality_combo", "save_dir_edit", "download_button",
                  "cancel_button", "progress_bar", "stage_label", "percent_label",
                  "speed_label", "status_log", "cookie_action"):
@@ -160,9 +167,9 @@ def main():
           and [window.uni_proxy_combo.itemData(i) for i in range(3)] == ["auto", "none", "manual"])
     check("uni_proxy_combo 默认 auto", window.uni_proxy_combo.currentData() == "auto")
     check("uni_proxy_edit 默认禁用", not window.uni_proxy_edit.isEnabled())
-    check("uni_proxy_edit 默认值 127.0.0.1:12334", window.uni_proxy_edit.text() == "http://127.0.0.1:12334")
+    check("uni_proxy_edit 默认值 127.0.0.1:12348", window.uni_proxy_edit.text() == "http://127.0.0.1:12348")
     check("uni_proxy_edit placeholder 含默认代理与 socks5",
-          "127.0.0.1:12334" in window.uni_proxy_edit.placeholderText()
+          "127.0.0.1:12348" in window.uni_proxy_edit.placeholderText()
           and "socks5://" in window.uni_proxy_edit.placeholderText())
     window.uni_proxy_combo.setCurrentIndex(window.uni_proxy_combo.findData("manual"))
     app.processEvents()
@@ -329,7 +336,7 @@ def main():
     print("== 设置持久化 ==")
     window.uni_save_dir_edit.setText(tmpdir)
     window.uni_proxy_combo.setCurrentIndex(window.uni_proxy_combo.findData("manual"))
-    window.uni_proxy_edit.setText("http://127.0.0.1:12334")
+    window.uni_proxy_edit.setText("http://127.0.0.1:12348")
     window.uni_accel_check.setChecked(True)
     app.processEvents()
     third = mw.MainWindow()
@@ -338,7 +345,7 @@ def main():
     check("重启后恢复万能存储位置", third.uni_save_dir_edit.text() == tmpdir)
     check("重启后恢复代理模式与地址",
           third.uni_proxy_combo.currentData() == "manual"
-          and third.uni_proxy_edit.text() == "http://127.0.0.1:12334")
+          and third.uni_proxy_edit.text() == "http://127.0.0.1:12348")
     check("重启后恢复加速开关", third.uni_accel_check.isChecked())
     third.close()
     third.deleteLater()

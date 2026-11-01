@@ -28,11 +28,26 @@ datas = _dedup_pairs(datas + yt_datas)
 binaries = _dedup_pairs(binaries + yt_binaries)
 hiddenimports = sorted(set(hiddenimports + yt_hiddenimports))
 
+# 收集 telethon（tg_dl 飞机模式的 Telegram 客户端），与前面的收集结果合并去重
+tg_datas, tg_binaries, tg_hiddenimports = collect_all("telethon")
+datas = _dedup_pairs(datas + tg_datas)
+binaries = _dedup_pairs(binaries + tg_binaries)
+hiddenimports = sorted(set(hiddenimports + tg_hiddenimports))
+
+# 收集 qrcode（扫码登录：tg_dl 用其生成二维码矩阵，GUI 用 QPainter 绘制）
+qr_datas, qr_binaries, qr_hiddenimports = collect_all("qrcode")
+datas = _dedup_pairs(datas + qr_datas)
+binaries = _dedup_pairs(binaries + qr_binaries)
+hiddenimports = sorted(set(hiddenimports + qr_hiddenimports))
+
 # 打包 aria2c（uni_dl 多线程加速依赖）与其许可证，运行时解包到 tools/aria2/
 aria2_binaries = [("tools/aria2/aria2c.exe", "tools/aria2")]
 aria2_datas = [("tools/aria2/COPYING", "tools/aria2")]
 binaries = _dedup_pairs(binaries + aria2_binaries)
 datas = _dedup_pairs(datas + aria2_datas)
+
+# 应用图标：运行期窗口图标（assets/logo.png），exe 图标见下方 EXE(icon=...)
+datas = _dedup_pairs(datas + [("assets/logo.png", "assets"), ("assets/logo.ico", "assets")])
 
 # 打包 curl_cffi（浏览器 TLS 指纹伪装，绕过 Cloudflare 类反爬）及其 libcurl DLL
 import glob
@@ -84,6 +99,7 @@ exe = EXE(
     a.datas,
     [],
     name="BiliDownloader",
+    icon="assets/logo.ico",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
